@@ -48,6 +48,7 @@ from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 
 from bpy.app.handlers import persistent
 
+
 class NestedDict(collections.OrderedDict):
     def __init__(self, *args, **kw):
         super(NestedDict, self).__init__(*args, **kw)
@@ -79,7 +80,7 @@ class NestedDict(collections.OrderedDict):
         sorted_keys = keys[:]
         sorted_keys.append(key)
         sorted_keys.sort()
-        
+
         index = sorted_keys.index(key)
         super(NestedDict, self).__setitem__(key, value)
 
@@ -98,6 +99,7 @@ class NestedDict(collections.OrderedDict):
         else:
             for _key in sorted_keys[index+1:]:
                 self.move_to_end(_key)
+
 
 class Modules:
     def __init__(self, basedir, filepath, xml):
@@ -147,7 +149,7 @@ class Modules:
                     for key,value in value.items():
                         file = SubElement(function, "file")
                         file.attrib = {'name':key}
-    
+
                         # object
                         for key,value in value.items():
                             object = SubElement(file, "object")
@@ -157,7 +159,7 @@ class Modules:
                             for key,value in value.items():
                                 controller = SubElement(object, "controller")
                                 controller.text = key
-    
+
             text = bpy.data.texts.new(name="report.xml")
             message = tostring(xmlreport, encoding='utf-8', method='xml').decode()
             text.write(message)
@@ -167,7 +169,7 @@ class Modules:
             text = bpy.data.texts.new(name="Report.txt")
             message = "Blender Game Engine . Module Python Listing:"
             text.write("%s\n%s\n" % (message, "^"*len(message)))
-    
+
             # module
             for key,value in self.modules.items():
                 message = "module: {0}".format(key)
@@ -189,7 +191,8 @@ class Modules:
 
         # we don't need to print it, but right now there is a bug right after we are done
         print(text.as_string())
-    
+
+
 class LOGIC_OT_list_controllers(bpy.types.Operator):
     """List all module controllers"""
     bl_idname = "logic.list_modules"
@@ -212,15 +215,15 @@ class LOGIC_OT_list_controllers(bpy.types.Operator):
         curdir = bpy.path.abspath('//')
         filepath = bpy.context.blend_data.filepath
         bpy.modules = Modules(curdir, filepath, self.properties.xml)
-    
+
         # get all files available
         files = list()
         basedir = bpy.path.abspath('//')
         get_files(files, basedir)
-    
+
         # store to use later
         bpy.files = files
-    
+
         # make sure this runs for the new files    
         bpy.app.handlers.load_post.append(inspect_file)
 
@@ -234,7 +237,7 @@ class LOGIC_OT_list_controllers(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.window_manager     
+        wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
     def draw(self, context):
@@ -246,10 +249,12 @@ class LOGIC_OT_list_controllers(bpy.types.Operator):
         layout.label(text="Do you want to use the XML format?")
         layout.prop(self, "xml")
 
+
 @persistent
 def print_report(context):
     """"""
     bpy.modules.report()
+
 
 @persistent
 def inspect_file(context):
@@ -266,7 +271,7 @@ def inspect_file(context):
 
     # when in the top level folder shouldn't show .
     if pythondir == ".": pythondir = ""
-    
+
     for object in bpy.data.objects:
         for controller in object.game.controllers:
             if controller.type == 'PYTHON' and controller.mode == 'MODULE':
@@ -278,11 +283,12 @@ def inspect_file(context):
     # go to next file
     load_next_file()
 
+
 def load_next_file():
     """"""
     if len(bpy.files):
         filepath = bpy.files.pop()
-     
+
     else:
         bpy.modules.finished()
         return
@@ -291,6 +297,7 @@ def load_next_file():
         load_next_file()
     else:
         bpy.ops.wm.open_mainfile(filepath=filepath)
+
 
 def get_files(files, directory):
     """creates a list with all .blend files from this folder on"""
@@ -313,6 +320,7 @@ def list_controllers_button(self, context):
         LOGIC_OT_list_controllers.bl_idname,
         text="List Controllers",
         icon="GAME")
+
 
 def register():
     bpy.utils.register_class(LOGIC_OT_list_controllers)
